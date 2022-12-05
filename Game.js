@@ -1,42 +1,37 @@
 title = "";
-
-description = `
-`;
-
+description = ``;
 characters = [];
-
 options = {};
 
 class MyBlock
 {
-    constructor(struct, color)
+    constructor(struct, color,width)
     {
         this.struct = struct;
         this.color = color;
-    } 
-
-    
+        this.width = width;
+    }   
 }
-
-
 
 /** @type {Vector[]} */
 let pins;
 const cordLength = 20;
-goRight = false;
-inputFired = false;
-DistanceToAdd = 0.5;
-angleShooted = 0;
-blockCreated = false;
-rnd = rndi(45, 70);
+
+// Shoot
+var goRight = false;
+var inputFired = false;
+var angleShooted = 0;
+
+// Blocks structure
 var pin;
 var Etages = [[],[],[],[],[]];
-var descente = 0.02;
 var tabColor = ["red","blue","green"];
-var tailleBlock = 24;
+var widthBlock = 24;
+var heightBlock = 5;
 
-x = 0;
-y = 0;
+//Block movements
+var DistanceToAdd = 0.5;
+var descente = 0.02;
 
 function update() 
 {
@@ -46,6 +41,85 @@ function update()
       cord = { angle: 0, length: cordLength, pin: pins[0] };
     }
 
+    RotationTir();
+
+    pins.forEach((p) => 
+    {
+      box(p, 3);
+    });
+
+    onKeyPress();
+
+    CreateEtage(1);
+    CreateEtage(2);
+    CreateEtage(3);
+    CreateEtage(4);
+}
+
+function CreateEtage(numEtage)
+{
+    // if we just started, create the first block
+    if( Etages[numEtage].length == 0 )
+    {
+        //Position
+        var x = widthBlock / 2;
+        var y = numEtage * 6 + 10; 
+
+        // Spawn the block
+        for ( i = 0; i < 5; i++ )
+        {
+            if ( i != 0 )
+                x = Etages[numEtage][i-1].struct.x + widthBlock + 1;
+            if ( i == 4)
+                x =  -  widthBlock / 2 - 1;
+          
+            SpawnBlock(i,numEtage,x,y);
+        }
+    }
+    else
+    {
+        // Move all 5 blocks
+        for ( i = 0; i < 5; i++ )
+        {
+            // Movements
+            Etages[numEtage][i].struct.x += DistanceToAdd;
+            Etages[numEtage][i].struct.y += descente;
+
+            // if a block toutch the bottom, stop the game
+            if ( Etages[numEtage][i].struct.y > 98 )
+            {
+                end();
+            }
+
+            // if a block is out of the screen, replace it at the beginning
+            if( Etages[numEtage][i].struct.x >= 99 + widthBlock / 2 )
+            {
+                //diff =  ElementCloseToLeftSide(numEtage);
+                Etages[numEtage][i].struct.x = -widthBlock /2 - 2 ;
+            }
+
+            // Place the block
+            MoveBlock(Etages[numEtage][i]);
+        }
+    }
+}
+
+function SpawnBlock(indice,numEtage,x,y)
+{
+    block = new MyBlock(vec( x, y ), tabColor[rndi(0, 3)],widthBlock);
+    MoveBlock(block);
+    Etages[numEtage][indice] = block;
+}
+
+function MoveBlock(block)
+{
+    color(block.color);
+    box(block.struct, widthBlock,heightBlock);
+    color("black");
+}
+
+function RotationTir()
+{
     cord.angle += goRight ? -0.01 : 0.01;
 
     if (cord.angle > PI)
@@ -56,14 +130,11 @@ function update()
     {
         goRight = false;
     }
-
     line(cord.pin, vec(cord.pin).addWithAngle( -cord.angle , cord.length));
+}
 
-    pins.forEach((p) => 
-    {
-      box(p, 3);
-    });
-
+function onKeyPress()
+{
     if (input.isJustPressed && !inputFired)
     {
         inputFired = true;
@@ -75,7 +146,6 @@ function update()
         // create a new pin
         pin = vec(pins[pins.length - 1]).addWithAngle( -angleShooted , 1);
 
-        
         if( pins.length > 1)
         {
             pins.pop();
@@ -91,70 +161,21 @@ function update()
             pins.pop();
         }
     }
-
-
-    CreateEtage(1);
-    CreateEtage(2);
-    CreateEtage(3);
-    CreateEtage(4);
 }
 
-function CreateEtage(numEtage)
+function ElementCloseToLeftSide(numEtage)
 {
-    var Block;
-    if( Etages[numEtage].length == 0 )
+    x = 99;
+    var block = Etages[numEtage][0];
+    for ( i = 0; i < 5; i++ )
     {
-        var x = 0;
-        var y = numEtage * 6 + 10; 
-
-        var Block = new MyBlock(vec( x, y ), tabColor[rndi(0, 3)]);
-
-        Etages[numEtage].push(Block);
-
-        color(Block.color);
-        box(Etages[numEtage][0].struct, tailleBlock,5);
-        color("black");
-
-        for ( i = 1; i < 4; i++ )
+        if ( Etages[numEtage][i].struct.x < x )
         {
-            x = Etages[numEtage][i-1].struct.x + 25;
-            Block = new MyBlock(vec( x, y ), tabColor[rndi(0, 2)]);
-            Etages[numEtage].push(Block);
-            color(Block.color);
-            box(Etages[numEtage][i].struct, tailleBlock,5);
-            color("black");
-        }
-
-        x =  Etages[numEtage][0].struct.x - tailleBlock - 1;
-        Block = new MyBlock(vec( x, y ), tabColor[rndi(0, 2)]);
-        Etages[numEtage].push(Block);
-        color(Block.color);
-        box(Etages[numEtage][4].struct, tailleBlock,5);
-        color("black");
-    }
-    else
-    {
-        for ( i = 0; i < 5; i++ )
-        {
-            Etages[numEtage][i].struct.x += DistanceToAdd;
-            Etages[numEtage][i].struct.y += descente;
-
-            if ( Etages[numEtage][i].struct.y > 98 )
-            {
-                end();
-            }
-
-            if( Etages[numEtage][i].struct.x > 99 + tailleBlock )
-            {
-                Etages[numEtage][i].struct.x = -1;   
-            }
-
-            color( Etages[numEtage][i].color);
-            box(Etages[numEtage][i].struct, tailleBlock,5);
-
-            color("black");
+            x = Etages[numEtage][i].struct.x;
+            block = Etages[numEtage][i];
         }
     }
+    return block.width /2 ;
 }
 
 addEventListener("load", onLoad);
