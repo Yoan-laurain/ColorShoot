@@ -22,7 +22,6 @@ class MyBlock
     }   
 }
 
-/** @type {Vector[]} */
 let pins;
 
 // Shoot
@@ -32,24 +31,24 @@ var angleShooted = 0;
 var currentAngle = 0;
 
 // Blocks structure
-var pin;
 var Etages = [];
 var tabColor = ["red","blue","green"];
 var heightBlock = 5;
-
-//Block movements
-var descente = 0.02;
-var spaceBetweenBlocks = 0.5;
-var totalSpaceToFill = 98;
-
-var speeds = [];
-var nbEtage = 4;
-var nbBlockPerEtage = 5;
-var gameOver = false;
-var hitColor = null;
-
 var id =0;
 
+//Block movements
+var fallSpeed = 0.02;
+var spaceBetweenBlocks = 0.5;
+var totalSpaceToFill = 98;
+var speeds = [];
+
+// Floor structure
+var nbFloors = 4;
+var nbBlocksPerFloor = 5;
+
+// Game 
+var gameOver = false;
+var hitColor = null;
 var shootFailed;
 var linesPop = 0;
 var multiplier = 1;
@@ -61,7 +60,7 @@ function update()
     if (!ticks) 
     {
       pins = [vec(50,95)];
-      for ( i = 0; i < nbEtage; i++ )
+      for ( i = 0; i < nbFloors; i++ )
       {
         Etages[i] = [];
         speeds[i] = 0;
@@ -77,18 +76,18 @@ function update()
       box(p, 3);
     });
 
-    // if(nbEtage < 5)
-    // {
-    //     nbEtage += rndi(1,3);
+    if(nbFloors < 5)
+    {
+        nbFloors += rndi(1,3);
         
-    //     for (var i = Etages.length ; i <= nbEtage; i++)
-    //     {
-    //         Etages[i] = [];
-    //         speeds[i] = 0;
-    //     }
-    // }
+        for (var i = Etages.length ; i <= nbFloors; i++)
+        {
+            Etages[i] = [];
+            speeds[i] = 0;
+        }
+    }
 
-    for ( p = 0; p < nbEtage; p++ )
+    for ( p = 0; p < nbFloors; p++ )
     {
         CreateEtage(p);
     }
@@ -103,19 +102,27 @@ function CreateEtage(numEtage)
     {
         //Position
         var x;
-        var y =  numEtage * (heightBlock+1) + 10; 
+        var y;
+        if( numEtage == 0 )
+        {
+            y = (heightBlock+1)*nbFloors;
+        }
+        else
+        {
+            y =  Etages[numEtage-1][0].struct.y - (heightBlock+1) ; 
+        }
 
         var spaceLeftTofill = totalSpaceToFill;
 
         // Spawn the block
-        for ( i = 0; i < nbBlockPerEtage; i++ )
+        for ( i = 0; i < nbBlocksPerFloor; i++ )
         {
             var potentialWidth = setupWidthForBlocks(i,spaceLeftTofill,numEtage);
             spaceLeftTofill -= potentialWidth;
     
             if ( i != 0 )
                 x = Etages[numEtage][i-1].struct.x +  Etages[numEtage][i-1].width /2 + potentialWidth / 2 + spaceBetweenBlocks;
-            if ( i == nbBlockPerEtage - 1)
+            if ( i == nbBlocksPerFloor - 1)
                 x =  -potentialWidth / 2 - spaceBetweenBlocks;
             if ( i == 0)
                 x = potentialWidth / 2 ;
@@ -131,11 +138,11 @@ function CreateEtage(numEtage)
     else
     {
         // Move all blocks
-        for ( i = 0; i < nbBlockPerEtage; i++ )
+        for ( i = 0; i < nbBlocksPerFloor; i++ )
         {
             // Movements
             Etages[numEtage][i].struct.x += speeds[numEtage];
-            Etages[numEtage][i].struct.y += descente * penalty;
+            Etages[numEtage][i].struct.y += fallSpeed * penalty * difficulty;
 
             // if a block toutch the bottom, stop the game
             if ( Etages[numEtage][i].struct.y > 80 )
@@ -147,7 +154,7 @@ function CreateEtage(numEtage)
             // if a block is out of the screen, replace it at the beginning
             if( Etages[numEtage][i].struct.x >= 99 + Etages[numEtage][i].width / 2 )
             {
-                var width = Etages[numEtage][( i+1 == nbBlockPerEtage ? 0 : i+1 )].struct.x - Etages[numEtage][( i+1 == nbBlockPerEtage ? 0 : i+1 )].width / 2;
+                var width = Etages[numEtage][( i+1 == nbBlocksPerFloor ? 0 : i+1 )].struct.x - Etages[numEtage][( i+1 == nbBlocksPerFloor ? 0 : i+1 )].width / 2;
                 Etages[numEtage][i].struct.x = -abs(width)  - spaceBetweenBlocks - Etages[numEtage][i].width / 2;
             }
 
@@ -169,7 +176,6 @@ function MoveBlockFired(block)
 {
     var blocksInWay = GetAllBlockInWay(block);
 
-
     if ( blocksInWay.length > 0 && !shootFailed )
     {
         if ( hitColor == null)
@@ -183,8 +189,8 @@ function MoveBlockFired(block)
         {
             if( blocksInWay[s].color == hitColor )
             {
-                Etages.pop();
-                nbEtage--;   
+                Etages.shift();
+                nbFloors--;   
                 linesPop++;     
                 multiplier += 1;  
             }
@@ -193,15 +199,13 @@ function MoveBlockFired(block)
                 addScore(linesPop * 100 * multiplier, 50,50);
                 hitColor = null;
                 shootFailed = true;
-                linesPopAtOnce = 0;
+                linesPop = 0;
                 multiplier = 0;
-                penalty = 1;        
-                console      
+                penalty = 1;    
+                inputFired = false;    
                 break;
             }
-
         }
-        penalty = clamp(penalty * (3 / multiplier), 1, 4);
     }
     else
     {
@@ -211,7 +215,6 @@ function MoveBlockFired(block)
         box(block.struct, block.width,block.height);
         color("black");
     }
-
 }
 
 function RotationTir()
@@ -253,8 +256,12 @@ function onKeyPress()
             pins.pop();
         }
 
-        // Add new pin
-        pins.push(block);
+        if ( !shootFailed )
+        {
+            // Add new pin
+            pins.push(block);
+        }
+
 
         // if the pin is out of the screen, stop shooting
         if ( block.struct.x < 0 || block.struct.x > 99 || block.struct.y < 0 || block.struct.y > 99 )
@@ -262,23 +269,26 @@ function onKeyPress()
             inputFired = false;
             shootFailed = false;
             pins.pop();
-        }        
-    }
+        }    
 
-    if (input.isJustPressed && !inputFired)
+   
+    }
+    else if (input.isJustPressed && !inputFired)
     {
         play("laser");
         inputFired = true;
+        shootFailed = false;
         angleShooted = currentAngle;
         block = new MyBlock(-1,vec( 50,95 ).addWithAngle( -angleShooted , 0.05), "yellow",2,-1,2);
         MoveBlock(block);
         pins.push(block);
-    }    
+    }
+
 }
 
 function setupWidthForBlocks(i,spaceLeftTofill,numEtage)
 {
-    basicWidth = totalSpaceToFill / nbBlockPerEtage;
+    basicWidth = totalSpaceToFill / nbBlocksPerFloor;
     var potentialWidth = rndi(basicWidth-5,basicWidth+5);
 
     if(potentialWidth % 2 != 0 )
@@ -286,11 +296,11 @@ function setupWidthForBlocks(i,spaceLeftTofill,numEtage)
         potentialWidth++;
     }
 
-    if ( i == nbBlockPerEtage-2 ) 
+    if ( i == nbBlocksPerFloor-2 ) 
     {
         potentialWidth = spaceLeftTofill;
     }
-    else if ( i == nbBlockPerEtage-1 )
+    else if ( i == nbBlocksPerFloor-1 )
     {
         potentialWidth = Etages[numEtage][i-1].width;
     }
@@ -315,7 +325,7 @@ function GetAllBlockInWay(block)
 {
     var blocksInWay = [];
 
-    for ( i = nbEtage - 1 ; i >= 0; i-- )
+    for ( i = nbFloors - 1 ; i >= 0; i-- )
     {
         Etages[i].forEach(element => {
             if(  block.struct.y < element.struct.y + element.height /2 && block.struct.y > element.struct.y - element.height /2 )
@@ -331,6 +341,5 @@ function GetAllBlockInWay(block)
 
     return blocksInWay;
 }
-
 
 addEventListener("load", onLoad);
