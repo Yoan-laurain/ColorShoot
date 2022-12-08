@@ -52,7 +52,11 @@ var hitColor = null;
 var shootFailed;
 var linesPop = 0;
 var multiplier = 1;
-var penalty = 1;
+
+var StoredDifficulty = 1;
+var stayDisplayed = false;
+
+var stockSpeedTemp = null;
 
 
 function update() 
@@ -64,10 +68,39 @@ function update()
       {
         Etages[i] = [];
         speeds[i] = 0;
+        fallSpeed = 0.02;
+        id = 0;
+        currentAngle = 0;
+        angleShooted = 0;
+        inputFired = false;
+        goRight = false;
+        linesPop = 0;
+        multiplier = 1;
+        StoredDifficulty = 1;
+        stayDisplayed = false;
+        stockSpeedTemp = null;
       }
     }
 
     if ( gameOver ) return;
+
+
+    if ( StoredDifficulty + 1 <= difficulty || stayDisplayed)
+    {
+        if ( StoredDifficulty + 1 <= difficulty)
+        {
+            StoredDifficulty++;
+        }
+        text("Level " + StoredDifficulty,30, 65);
+        text("Points X " + StoredDifficulty,20, 75);
+        stayDisplayed = true;
+    }
+
+    if ( difficulty - StoredDifficulty > 0.05 )
+    {
+        stayDisplayed = false;
+    }
+
 
     RotationTir();
 
@@ -76,7 +109,7 @@ function update()
       box(p, 3);
     });
 
-    if(nbFloors < 5)
+    if(nbFloors < 8)
     {
         nbFloors += rndi(1,3);
         
@@ -91,6 +124,21 @@ function update()
     {
         CreateEtage(p);
     }
+
+    if ( Etages[0][0].struct.y <= 20)
+    {
+        if ( stockSpeedTemp == null )
+        {
+            stockSpeedTemp = fallSpeed;
+        }
+        fallSpeed += 0.01;
+    }
+    else if( stockSpeedTemp != null)
+    {
+        fallSpeed = stockSpeedTemp;
+        stockSpeedTemp = null;
+    }
+
 
     onKeyPress();
 }
@@ -142,7 +190,7 @@ function CreateEtage(numEtage)
         {
             // Movements
             Etages[numEtage][i].struct.x += speeds[numEtage];
-            Etages[numEtage][i].struct.y += fallSpeed * penalty * difficulty;
+            Etages[numEtage][i].struct.y += fallSpeed * difficulty;
 
             // if a block toutch the bottom, stop the game
             if ( Etages[numEtage][i].struct.y > 80 )
@@ -196,13 +244,22 @@ function MoveBlockFired(block)
             }
             else
             {
-                addScore(linesPop * 100 * multiplier, 50,50);
+                addScore(linesPop * 100 * multiplier * StoredDifficulty, 50,50);
                 hitColor = null;
                 shootFailed = true;
-                linesPop = 0;
+
                 multiplier = 0;
-                penalty = 1;    
-                inputFired = false;    
+                inputFired = false;
+                if ( fallSpeed >= 0.02 )
+                { 
+                    fallSpeed += (1.4 - linesPop) * 0.03; 
+                    if ( fallSpeed < 0.02)
+                    {
+                        fallSpeed = 0.02;
+                    }
+                }
+
+                linesPop = 0;
                 break;
             }
         }
@@ -219,7 +276,7 @@ function MoveBlockFired(block)
 
 function RotationTir()
 {
-    currentAngle += goRight ? -0.02 : 0.02;
+    currentAngle += (goRight ? -0.02 : 0.02) * difficulty;
 
     if (currentAngle > PI)
     {
