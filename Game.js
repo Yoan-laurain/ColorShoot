@@ -312,9 +312,9 @@ function RotationTir()
     
     pos = vec(50, 95);
     const np = vec(pos).addWithAngle(-currentAngle, 15);
-    color("red");
-    line(pos, np, 3);
-    color("black");    
+    color("purple");
+    line(pos, np, 3); 
+    color("black");
 }
 
 function onKeyPress()
