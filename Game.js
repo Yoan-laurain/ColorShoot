@@ -2,12 +2,14 @@ title = "Color shoot";
 description = `Play`;
 characters = [];
 options = {
-    isReplayEnabled: false,
+    isReplayEnabled: true,
     isDrawingScoreFront: true,
     theme: "dark",
     isPlayingBgm: true,
-    seed: 9,
+    seed: 6,
 };
+
+
 
 class MyBlock
 {
@@ -47,7 +49,6 @@ var nbFloors = 4;
 var nbBlocksPerFloor = 5;
 
 // Game 
-var gameOver = false;
 var hitColor = null;
 var shootFailed;
 var linesPop = 0;
@@ -57,7 +58,10 @@ var StoredDifficulty = 1;
 var stayDisplayed = false;
 
 var stockSpeedTemp = null;
+var soundVolume = 0.3;
 
+var firstStart = true;
+var hasClicked = false;
 
 function update() 
 {
@@ -79,11 +83,30 @@ function update()
         StoredDifficulty = 1;
         stayDisplayed = false;
         stockSpeedTemp = null;
+        hasClicked = false;
       }
     }
 
-    if ( gameOver ) return;
+    if(input.isJustPressed)
+    {
+        hasClicked = true;
+    }
 
+
+    if ( difficulty < 1.8 && firstStart && !hasClicked)
+    {
+        text("Rule : ", 8,15,{scale:{x:1,y:1}});
+        text("Break lines", 8,30,{scale:{x:1,y:1}});
+        text("of the same", 8,38,{scale:{x:1,y:1}});
+        text("color at once", 8,47,{scale:{x:1,y:1}});
+        text("to get a bonus", 8,55,{scale:{x:1,y:1}});
+        text("hit only 1 and", 8,73,{scale:{x:1,y:1}});
+        text("you'll get", 8,81,{scale:{x:1,y:1}});
+        text("a malus", 8,89,{scale:{x:1,y:1}});
+        return;
+    };
+
+    firstStart = false;
 
     if ( StoredDifficulty + 1 <= difficulty || stayDisplayed)
     {
@@ -195,7 +218,7 @@ function CreateEtage(numEtage)
             // if a block toutch the bottom, stop the game
             if ( Etages[numEtage][i].struct.y > 80 )
             {
-                play("explosion");
+                play("explosion", {volume: soundVolume});
                 end();
             }
 
@@ -231,7 +254,7 @@ function MoveBlockFired(block)
             hitColor = blocksInWay[0].color;
         }
 
-        play("coin");
+        play("coin", {volume: soundVolume});
       
         for ( var s = 0; s < blocksInWay.length; s++ )
         {
@@ -332,7 +355,7 @@ function onKeyPress()
     }
     else if (input.isJustPressed && !inputFired)
     {
-        play("laser");
+        play("laser",{volume: soundVolume});
         inputFired = true;
         shootFailed = false;
         angleShooted = currentAngle;
