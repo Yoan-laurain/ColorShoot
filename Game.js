@@ -90,10 +90,11 @@ function update()
     if(input.isJustPressed)
     {
         hasClicked = true;
+        difficulty = 1.1;
     }
 
 
-    if ( difficulty < 1.8 && firstStart && !hasClicked)
+    if ( difficulty < 1.1 && firstStart && !hasClicked)
     {
         text("Rule : ", 8,15,{scale:{x:1,y:1}});
         text("Break lines", 8,30,{scale:{x:1,y:1}});
@@ -299,13 +300,13 @@ function MoveBlockFired(block)
 
 function RotationTir()
 {
-    currentAngle += (goRight ? -0.02 : 0.02) * difficulty;
+    currentAngle += (goRight ? -0.015 : 0.015) * difficulty;
 
-    if (currentAngle > PI)
+    if (currentAngle + 0.4> PI  )
     {
         goRight = true;
     }
-    else if (currentAngle < 0)
+    else if (currentAngle-0.4 < 0)
     {
         goRight = false;
     }
@@ -351,7 +352,6 @@ function onKeyPress()
             pins.pop();
         }    
 
-   
     }
     else if (input.isJustPressed && !inputFired)
     {
@@ -359,7 +359,8 @@ function onKeyPress()
         inputFired = true;
         shootFailed = false;
         angleShooted = currentAngle;
-        block = new MyBlock(-1,vec( 50,95 ).addWithAngle( -angleShooted , 0.05), "yellow",2,-1,2);
+        
+        block = new MyBlock(-1,vec( 50,95 ).addWithAngle( -angleShooted , 15), "yellow",2,-1,2);
         MoveBlock(block);
         pins.push(block);
     }
