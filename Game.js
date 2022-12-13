@@ -115,8 +115,10 @@ function update()
         {
             StoredDifficulty++;
         }
-        text("Level " + StoredDifficulty,30, 65);
-        text("Points X " + StoredDifficulty,20, 75);
+        text("Level " + StoredDifficulty,30, 55);
+        text("Points X " + StoredDifficulty,20, 65);
+        text("fall speed X " + StoredDifficulty,10, 75);
+
         stayDisplayed = true;
     }
 
@@ -325,6 +327,7 @@ function MoveBlockFired(block)
                 break;
             }
         }
+
     }
     else
     {
@@ -338,7 +341,7 @@ function MoveBlockFired(block)
 
 function RotationTir()
 {
-    currentAngle += (goRight ? -0.015 : 0.015) * difficulty;
+    currentAngle += (goRight ? -0.015 : 0.015) * ( difficulty < 2 ? difficulty : difficulty / 1.5 ) ;
 
     if (currentAngle + 0.4> PI  )
     {
@@ -388,6 +391,7 @@ function onKeyPress()
             inputFired = false;
             shootFailed = false;
             pins.pop();
+            hitColor = null;
         }    
 
     }
