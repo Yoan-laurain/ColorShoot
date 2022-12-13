@@ -6,7 +6,7 @@ options = {
     isDrawingScoreFront: true,
     theme: "dark",
     isPlayingBgm: true,
-    seed: 6,
+    seed: 26,
 };
 
 
@@ -127,6 +127,7 @@ function update()
 
 
     RotationTir();
+    defenseLine();
 
     pins.forEach((p) => 
     {
@@ -248,22 +249,59 @@ function MoveBlockFired(block)
 {
     var blocksInWay = GetAllBlockInWay(block);
 
+
     if ( blocksInWay.length > 0 && !shootFailed )
     {
         if ( hitColor == null)
         {
             hitColor = blocksInWay[0].color;
         }
-
-        play("coin", {volume: soundVolume});
       
         for ( var s = 0; s < blocksInWay.length; s++ )
         {
+            var blockXBase = blocksInWay[0].struct.x;
             if( blocksInWay[s].color == hitColor )
             {
                 Etages.shift();
                 nbFloors--;   
                 linesPop++;     
+                count = 0;
+
+                switch (linesPop) 
+                {
+                    case 1:
+                        color("blue");
+                        count = 10;
+                        play("coin", {volume: soundVolume*2, pitch: 40 ,duration: 0.3});
+                        break;
+
+                    case 2:
+                        color("yellow");
+                        count = 30;
+                        play("coin", {volume: soundVolume*2, pitch:55, duration: 0.3});
+                        break;
+
+                    case 3:
+                        color("red");
+                        count = 60;
+                        play("coin", {volume: soundVolume*2, pitch:70, duration: 0.3 });
+                        break;
+
+                    case 4:
+                        color("cyan");
+                        count = 120;
+                        play("coin", {volume: soundVolume*2, pitch:85,  duration: 0.3 });
+                        break;
+
+                    case 5:
+                        color("purple");
+                        count = 180;
+                        play("coin", {volume: soundVolume*2, pitch:100, duration: 0.3});
+                        break;
+                }
+
+                particle(blockXBase,blocksInWay[s].struct.y+15, count, 2, PI / 2, 0.5);
+                color("white");
                 multiplier += 1;  
             }
             else
@@ -421,6 +459,42 @@ function GetAllBlockInWay(block)
 
 
     return blocksInWay;
+}
+
+function defenseLine()
+{
+    
+    switch ( StoredDifficulty )
+    {
+        case 1:
+            color("cyan");
+            break;
+        case 2:
+            color("red");
+            break;
+        case 3:
+            color("blue");
+            break;
+        case 4:
+            color("purple");
+            break;
+        case 5:
+            color("yellow");
+            break;
+        case 6:
+            color("green");
+    }
+
+    for ( i = 0; i < 100; i++ )
+    {
+        if ( i < 10 || i > 90)
+        {
+            particle(i,80 + heightBlock/2,20,0,1);
+        }
+    }
+
+    color("black");
+
 }
 
 addEventListener("load", onLoad);
