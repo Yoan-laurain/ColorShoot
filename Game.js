@@ -83,7 +83,7 @@ function update()
         StoredDifficulty = 1;
         stayDisplayed = false;
         stockSpeedTemp = null;
-        hasClicked = false;
+        hasClicked = false;  
       }
     }
 
@@ -130,6 +130,7 @@ function update()
 
     RotationTir();
     defenseLine();
+
 
     pins.forEach((p) => 
     {
@@ -489,16 +490,9 @@ function defenseLine()
             color("green");
     }
 
-    for ( i = 0; i < 100; i++ )
-    {
-        if ( i < 10 || i > 90)
-        {
-            particle(i,80 + heightBlock/2,20,0,1);
-        }
-    }
-
+    box(0,80 + heightBlock/2,20,heightBlock/3);
+    box(100,80 + heightBlock/2,20,heightBlock/3);
     color("black");
-
 }
 
 addEventListener("load", onLoad);
